@@ -2,7 +2,10 @@ package com.example.exploresagradafamilia.Database;
 
 import android.app.Application;
 
+import androidx.annotation.NonNull;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 
 import com.example.exploresagradafamilia.Sightplace;
 
@@ -11,6 +14,7 @@ import java.util.List;
 public class SightplaceRepository {
     private SightplaceDAO SightplaceDAO;
     private LiveData<List<Sightplace>> sightplace_list;
+    private int sightplace_size_sync;
 
     public SightplaceRepository(Application application) {
         SightplaceDatabase db = SightplaceDatabase.getDatabase(application);
@@ -30,7 +34,16 @@ public class SightplaceRepository {
         SightplaceDatabase.databaseWriteExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                SightplaceDAO.addCardItem(Sightplace);
+                SightplaceDAO.addSightplace(Sightplace);
+            }
+        });
+    }
+
+    public void setArchived(final int id) {
+        SightplaceDatabase.databaseWriteExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                SightplaceDAO.setArchived(id, true);
             }
         });
     }

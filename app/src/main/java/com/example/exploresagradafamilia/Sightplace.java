@@ -20,8 +20,10 @@ public class Sightplace {
     private int id;
     @ColumnInfo(name = "sightplace_image")
     private String image;
-    @ColumnInfo(name = "sightplace_position")
-    private Location position;
+    @ColumnInfo(name = "sightplace_lat")
+    private Double latitude;
+    @ColumnInfo(name = "sightplace_lon")
+    private Double longitude;
     @ColumnInfo(name = "sightplace_description")
     private String description;
     @ColumnInfo(name = "sightplace_title")
@@ -30,25 +32,31 @@ public class Sightplace {
     private boolean archived;
 
     /**
-     * @param position object containing lat and lon of the sightpalce
      * @param image    Base64 encoded image
      */
-    public Sightplace(String image, Location position, String description, String title) {
+    public Sightplace(String image, Double latitude, Double longitude, String description, String title) {
         this.image = image;
-        this.position = position;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.description = description;
         this.title = title;
         this.archived = false;
     }
 
-    public Bitmap getImage() {
-        byte[] decodedString = Base64.decode(image, Base64.DEFAULT);
-        Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-        return decodedByte;
+    public String getImage() {
+        return image;
     }
 
-    public Location getPosition() {
-        return position;
+    public boolean getArchived() {
+        return archived;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
     }
 
     public String getDescription() {
@@ -67,7 +75,7 @@ public class Sightplace {
         this.id = id;
     }
 
-    public void setArchived() {
-        this.archived = true;
+    public void setArchived(boolean archived) {
+        this.archived = archived;
     }
 }
