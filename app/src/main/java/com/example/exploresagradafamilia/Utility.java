@@ -26,7 +26,10 @@ public class Utility {
     }
 
     static void insertFragment(AppCompatActivity activity, Fragment fragment, String tag) {
-
+        activity.getSupportFragmentManager()
+                .beginTransaction()
+                .add(R.id.fragment_container, fragment, tag)
+                .commit();
     }
 
     public static Bitmap getImageBitmap(String base64) {

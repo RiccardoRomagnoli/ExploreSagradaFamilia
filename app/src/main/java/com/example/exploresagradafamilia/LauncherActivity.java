@@ -78,7 +78,6 @@ public class LauncherActivity extends AppCompatActivity {
         //if false -> snack bar (link settings)
         ListSightplaceViewModel model = new ViewModelProvider(this).get(ListSightplaceViewModel.class);
         model.getItems().observe(this, sightplaces -> {
-            Toast.makeText(getApplicationContext(), "*Places size: *\n" + sightplaces.size(), Toast.LENGTH_LONG).show();
             if (!doNotUpdate) {
                 if (sightplaces.isEmpty()) {
                     doNotUpdate = true;

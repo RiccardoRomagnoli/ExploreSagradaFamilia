@@ -3,4 +3,7 @@
 
     <string name="no_intern_available">No internet available.</string>
     <string name="settings">settings</string>
+    <string name="access_token">pk.eyJ1IjoicmljY2FyZG8tcm9tYWdub2xpIiwiYSI6ImNrOXNlanptNjEzN2UzbnFwYjg5MWpnMncifQ.3-TS0DYaPTrroaES-9hnLg</string>
+    <string name="extended_fab_label">Status</string>
+    <string name="page_title">Reach all the markers!</string>
 </resources>
