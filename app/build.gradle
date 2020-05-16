@@ -61,6 +61,9 @@ dependencies {
     //maps mapbox
     implementation 'com.mapbox.mapboxsdk:mapbox-android-sdk:9.2.0'
 
+    //Commons collections utilities
+    implementation 'org.apache.commons:commons-collections4:4.4'
+
     //some more
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.google.code.gson:gson:2.8.6'

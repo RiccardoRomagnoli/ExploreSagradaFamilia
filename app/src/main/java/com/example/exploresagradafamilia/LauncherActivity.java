@@ -74,8 +74,8 @@ public class LauncherActivity extends AppCompatActivity {
         //check presenza elementi room
         //if true -> fast skip
         //if false -> if check connection
-        //if true -> get http -> room populate -> progress update -> intent
-        //if false -> snack bar (link settings)
+        //      if true -> get http -> room populate -> progress update -> intent
+        //      if false -> snack bar (link settings)
         ListSightplaceViewModel model = new ViewModelProvider(this).get(ListSightplaceViewModel.class);
         model.getItems().observe(this, sightplaces -> {
             if (!doNotUpdate) {

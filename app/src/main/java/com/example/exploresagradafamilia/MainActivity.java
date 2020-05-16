@@ -22,8 +22,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MAIN_ACTIVITY";
     private static final String MAP_FRAGMENT_TAG = "MAP_FRAGMENT_TAG";
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
