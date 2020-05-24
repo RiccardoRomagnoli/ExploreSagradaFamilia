@@ -23,7 +23,11 @@ interface SightplaceDAO {
     @Query("SELECT * from Sightplace ORDER BY sightplace_id DESC")
     LiveData<List<Sightplace>> getSightplaces();
 
+//    @Transaction
+//    @Query("SELECT COUNT(*) from Sightplace WHERE sightplace_id =:id AND sightplace_archived = true")
+//    int isArchived(int id);
+
     @Transaction
-    @Query("UPDATE Sightplace SET sightplace_archived =:archived WHERE sightplace_id =:id")
+    @Query("UPDATE Sightplace SET sightplace_archived =:archived WHERE sightplace_minor =:id")
     void setArchived(int id, boolean archived);
 }

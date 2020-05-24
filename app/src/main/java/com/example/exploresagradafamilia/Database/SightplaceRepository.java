@@ -14,7 +14,6 @@ import java.util.List;
 public class SightplaceRepository {
     private SightplaceDAO SightplaceDAO;
     private LiveData<List<Sightplace>> sightplace_list;
-    private int sightplace_size_sync;
 
     public SightplaceRepository(Application application) {
         SightplaceDatabase db = SightplaceDatabase.getDatabase(application);
@@ -47,4 +46,8 @@ public class SightplaceRepository {
             }
         });
     }
+//
+//    public int isArchived(final int id) {
+//        return SightplaceDAO.isArchived(id);
+//    }
 }

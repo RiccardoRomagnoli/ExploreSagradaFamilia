@@ -31,8 +31,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -54,7 +52,7 @@ public class LauncherActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final Activity activity = this;
+        final AppCompatActivity activity = this;
         setContentView(R.layout.activity_launcher);
         progressBar = findViewById(R.id.progressBar);
         progressBar.setProgress(0);
@@ -152,8 +150,11 @@ public class LauncherActivity extends AppCompatActivity {
                                         Double.parseDouble(jsonobject.get("latitude").toString()),
                                         Double.parseDouble(jsonobject.get("longitude").toString()),
                                         jsonobject.get("description").toString(),
-                                        jsonobject.get("title").toString()
-                                );
+                                        jsonobject.get("title").toString(),
+                                        Double.parseDouble(jsonobject.get("rating").toString()),
+                                        jsonobject.get("location").toString(),
+                                        Integer.parseInt(jsonobject.get("major").toString()),
+                                        Integer.parseInt(jsonobject.get("minor").toString()));
                                 roomAddSightplace(sightplace);
                             } catch (JSONException e) {
                                 e.printStackTrace();

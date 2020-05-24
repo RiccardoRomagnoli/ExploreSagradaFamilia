@@ -26,7 +26,12 @@ public class ArchiveSightplaceViewModel extends AndroidViewModel {
         repository = new SightplaceRepository(application);
     }
 
+    /**
+     * @param id Minor Beacon ID
+     */
     public void archiveItem(int id) {
         repository.setArchived(id);
     }
+
+//    public int isArchived(int id) { return repository.isArchived(id);}
 }

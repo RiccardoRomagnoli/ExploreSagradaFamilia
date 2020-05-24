@@ -1,11 +1,5 @@
 package com.example.exploresagradafamilia;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.location.Location;
-import android.media.Image;
-import android.util.Base64;
-
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -28,18 +22,32 @@ public class Sightplace {
     private String description;
     @ColumnInfo(name = "sightplace_title")
     private String title;
+    @ColumnInfo(name = "sightplace_rating")
+    private Double rating;
+    @ColumnInfo(name = "sightplace_location")
+    private String location;
     @ColumnInfo(name = "sightplace_archived")
     private boolean archived;
+    @ColumnInfo(name = "sightplace_major")
+    private int major;
+    @ColumnInfo(name = "sightplace_minor")
+    private int minor;
 
     /**
      * @param image    Base64 encoded image
+     * @param major    Ibeacon major ID
+     * @param minor    Ibeacon minor ID
      */
-    public Sightplace(String image, Double latitude, Double longitude, String description, String title) {
+    public Sightplace(String image, Double latitude, Double longitude, String description, String title, Double rating, String location, int major, int minor) {
         this.image = image;
         this.latitude = latitude;
         this.longitude = longitude;
         this.description = description;
         this.title = title;
+        this.rating = rating;
+        this.location = location;
+        this.major = major;
+        this.minor = minor;
         this.archived = false;
     }
 
@@ -65,6 +73,22 @@ public class Sightplace {
 
     public String getTitle() {
         return title;
+    }
+
+    public Double getRating() {
+        return rating;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public int getMajor() {
+        return major;
+    }
+
+    public int getMinor() {
+        return minor;
     }
 
     public int getId() {

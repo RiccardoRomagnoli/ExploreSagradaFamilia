@@ -71,4 +71,14 @@ dependencies {
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test:core:1.2.0'
     androidTestImplementation 'androidx.test:runner:1.3.0-beta01'
+
+    // Ken effect
+    implementation "com.flaviofaria:kenburnsview:1.0.7"
+
+    // Image loading
+    implementation 'com.squareup.picasso:picasso:2.71828'
+
+    //beacons lib
+    implementation 'org.altbeacon:android-beacon-library:2.12.3'
+
 }

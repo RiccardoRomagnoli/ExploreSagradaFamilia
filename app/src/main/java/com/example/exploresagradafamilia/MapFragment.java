@@ -2,7 +2,9 @@ package com.example.exploresagradafamilia;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Path;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -39,26 +41,29 @@ import com.mapbox.mapboxsdk.maps.Style;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 
+import java.security.cert.PKIXRevocationChecker;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
+    public static final String MAP_FRAGMENT_TAG = "MAP_FRAGMENT_TAG";
     private MainActivity activity;
     private MapView mapView;
-    ExtendedFloatingActionButton extFab;
+    private ExtendedFloatingActionButton extFab;
     private List<Sightplace> sightplacesList = new ArrayList<>();
     private boolean firstLoad = true;
-    Object syncToken = new Object();
     // Create an Icon object for the markers
-    Icon icon_toarchive;
-    Icon icon_archived;
-    Snackbar snackbar;
+    private Icon icon_toarchive;
+    private Icon icon_archived;
+    private Snackbar snackbar;
 
-    MapboxMap mapboxMap = null;
+    private MapboxMap mapboxMap = null;
     private BidiMap<Integer, Marker> markers;
 
     private static final LatLng BOUND_CORNER_NW = new LatLng(41.403931, 2.173907);
@@ -95,15 +100,17 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             markers = new DualHashBidiMap<>();
             addMarkers();
         } else {
+            //cerco il marker che è diventato "archived"
             sightplacesList.forEach(itemChanged -> {
-                if (markers.get(itemChanged.getId()).getIcon().equals(icon_toarchive) && itemChanged.getArchived()) {
+                if (markers.get(itemChanged.getMinor()).getIcon().equals(icon_toarchive) && itemChanged.getArchived()) {
                     //place archived
-                    markers.get(itemChanged.getId()).setIcon(icon_archived);
+                    markers.get(itemChanged.getMinor()).setIcon(icon_archived);
                 }
             });
         }
     }
 
+    //minor ID idetify the marker
     private void addMarkers() {
         if (mapboxMap != null) {
             //add markers to map
@@ -113,7 +120,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                         .icon(item.getArchived() ? icon_archived : icon_toarchive)
                         .title(item.getTitle());
                 Marker marker = mapboxMap.addMarker(tempMark);
-                markers.put(item.getId(), marker);
+                markers.put(item.getMinor(), marker);
             });
         } else {
             Toast.makeText(activity, "ROOM FASTER THAN MAP READY...", Toast.LENGTH_LONG).show();
@@ -148,12 +155,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         //fab
         extFab = view.findViewById(R.id.extFab);
-        extFab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //Toast.makeText(activity, "FAB TOUCH", Toast.LENGTH_LONG).show();
-            }
-        });
+        extFab.setOnClickListener(fab_view -> Utility.insertFragment(activity, new ListFragment(), ListFragment.FRAGMENT_LIST));
 
         //snackbar
         snackbar = Snackbar.make(
@@ -170,18 +172,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             mapboxMap.setLatLngBoundsForCameraTarget(RESTRICTED_BOUNDS_AREA);
         });
 
-        ArchiveSightplaceViewModel modelArchive = new ViewModelProvider(activity).get(ArchiveSightplaceViewModel.class);
+        //ArchiveSightplaceViewModel modelArchive = new ViewModelProvider(activity).get(ArchiveSightplaceViewModel.class);
 
+        //MARKER CLICK
         this.mapboxMap.setOnMarkerClickListener(markerClicked -> {
-            //marker listener
-            if (sightplacesList.stream().filter(item -> item.getId() == markers.getKey(markerClicked)).collect(Collectors.toList()).get(0).getArchived()) {
-                //place aready reached
-
+            Sightplace sightplace = sightplacesList.stream().filter(item -> item.getMinor() == markers.getKey(markerClicked)).collect(Collectors.toList()).get(0);
+            if (sightplace.getArchived()) {
+                //place reached
+                Utility.insertFragmentWithId(activity, new ListFragment(), ListFragment.FRAGMENT_LIST, markers.getKey(markerClicked));
                 return true;
             } else {
                 //to archive
                 snackbar.show();
-                //imodelArchive.archiveItem(markers.getKey(markerClicked));
+                //test archive on click
+                //modelArchive.archiveItem(markers.getKey(markerClicked));
                 return false;
             }
         });
@@ -233,4 +237,50 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         super.onSaveInstanceState(outState);
         mapView.onSaveInstanceState(outState);
     }
+
+    /**
+     * @param id Minor ID from Beacon
+     * @return -1 not in list
+     * 0 not archived
+     * 1 archived
+     */
+    int isArchived(int id) {
+        Optional<Sightplace> opt = getSightplaceFromMinor(id);
+        if (opt.isPresent()) {
+            return opt.get().getArchived() ? 1 : 0;
+        } else {
+            Utility.showToastMessage(activity, "ID Ibeacon non riconosciuto");
+            return -1;
+        }
+    }
+
+    String getTitle(int minor_id) {
+        Optional<Sightplace> opt = getSightplaceFromMinor(minor_id);
+        if (opt.isPresent())
+            return opt.get().getTitle();
+        else
+            return "";
+    }
+
+    public void showTooltip(int minor_id) {
+        Optional<Sightplace> opt = getSightplaceFromMinor(minor_id);
+        if (opt.isPresent()) {
+            mapboxMap.selectMarker(markers.get(minor_id));
+        }
+    }
+
+    public void dismissTooltip(int minor_id) {
+        Optional<Sightplace> opt = getSightplaceFromMinor(minor_id);
+        if (opt.isPresent()) {
+            mapboxMap.deselectMarker(markers.get(minor_id));
+        }
+    }
+
+    private Optional<Sightplace> getSightplaceFromMinor(int minor_id) {
+        List<Sightplace> check = sightplacesList.stream().filter(item -> item.getMinor() == minor_id).collect(Collectors.toList());
+        if (check.isEmpty())
+            return Optional.empty();
+        return Optional.of(check.get(0));
+    }
+
 }
