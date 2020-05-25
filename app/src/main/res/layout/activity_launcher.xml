@@ -6,18 +6,19 @@
     android:layout_height="match_parent"
     android:id="@+id/launch_activity">
 
-    <ProgressBar
+    <me.zhanghai.android.materialprogressbar.MaterialProgressBar
         android:id="@+id/progressBar"
-        style="@android:style/Widget.Material.Light.ProgressBar.Horizontal"
-        android:layout_width="194dp"
-        android:layout_height="49dp"
-        android:layout_marginTop="16dp"
-        android:max="100"
-        android:progress="0"
-        android:progressTint="#8C9EFF"
+        style="@style/Widget.MaterialProgressBar.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="50dp"
+        android:layout_marginEnd="50dp"
+        android:indeterminate="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline" />
+        app:layout_constraintTop_toTopOf="@+id/guideline"
+        app:mpb_indeterminateTint="#8C9EFF"
+        app:mpb_progressStyle="horizontal" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline"

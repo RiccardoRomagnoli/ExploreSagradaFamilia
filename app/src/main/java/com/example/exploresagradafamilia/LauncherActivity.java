@@ -3,9 +3,13 @@ package com.example.exploresagradafamilia;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,23 +18,24 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.exploresagradafamilia.Permissions.PermissionUtility;
 import com.example.exploresagradafamilia.ViewModel.AddSightplaceViewModel;
 import com.example.exploresagradafamilia.ViewModel.ListSightplaceViewModel;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.URL;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -49,13 +54,14 @@ public class LauncherActivity extends AppCompatActivity {
     RequestQueue requestQueue;
     Snackbar snackbar;
 
+    private AppCompatActivity activity = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final AppCompatActivity activity = this;
+        activity = this;
         setContentView(R.layout.activity_launcher);
         progressBar = findViewById(R.id.progressBar);
-        progressBar.setProgress(0);
 
         snackbar = Snackbar.make(
                 findViewById(R.id.launch_activity),
@@ -69,62 +75,41 @@ public class LauncherActivity extends AppCompatActivity {
             }
         });
 
-        //check presenza elementi room
-        //if true -> fast skip
-        //if false -> if check connection
-        //      if true -> get http -> room populate -> progress update -> intent
-        //      if false -> snack bar (link settings)
-        ListSightplaceViewModel model = new ViewModelProvider(this).get(ListSightplaceViewModel.class);
-        model.getItems().observe(this, sightplaces -> {
-            if (!doNotUpdate) {
-                if (sightplaces.isEmpty()) {
-                    doNotUpdate = true;
-                    if (isOnline()) {
-                        downloadResurces();
-                        doProgress();
-                    } else {
-                        snackbar.show();
-                        needContent = true;
-                        DELAY_PROGRESS *= 2;
-                    }
-                } else {
-                    launchMain = true;
-                    doProgress();
-                }
-            }
-        });
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
+        new ViewModelProvider(this)
+                .get(ListSightplaceViewModel.class)
+                .getItems().observe(this, this::roomObserver);
 
         //register the callback that keep monitored the internet connection
         registerNetworkCallback(this);
     }
 
-    private void doProgress() {
-        timer = new Timer();
-        timer.schedule(new TimerTask() {
-            int i = 0;
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!isOnline() && needContent) {
+            snackbar.show();
+        }
+    }
 
-            @Override
-            public void run() {
-                //this repeats every 8 ms
-                if (i <= progressBar.getMax()) {
-                    progressBar.setProgress(i);
-                    i++;
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PermissionUtility.PERMISSION_REQUEST_STORAGE: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    downloadResources();
                 } else {
-                    if (launchMain) {
-                        startMainActivity();
-                    } else {
-                        launchManually = true;
-                    }
-                    //closing the timer
-                    cancel();
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle(R.string.funcionality_limited);
+                    builder.setMessage(getString(R.string.writing_access_needed) +
+                            getString(R.string.cannot_mangage_images));
+                    builder.setPositiveButton(android.R.string.ok, null);
+                    builder.setOnDismissListener(dialog -> {/*DO NOTHING*/});
+                    builder.show();
                 }
+                return;
             }
-        }, 0, DELAY_PROGRESS);
+        }
     }
 
     private void startMainActivity() {
@@ -133,73 +118,44 @@ public class LauncherActivity extends AppCompatActivity {
         finish();
     }
 
-    private void downloadResurces() {
-        // Instantiate the RequestQueue.
-        requestQueue = Volley.newRequestQueue(this);
-        String url = "https://agriturismomarcheok.it/web-services/getSightplaces.php";
-        // Request a jsonArray response from the provided URL.
-        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest
-                (Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        for (int i = 0; i < response.length(); i++) {
-                            try {
-                                JSONObject jsonobject = response.getJSONObject(i);
-                                Sightplace sightplace = new Sightplace(
-                                        jsonobject.get("imageB64").toString(),
-                                        Double.parseDouble(jsonobject.get("latitude").toString()),
-                                        Double.parseDouble(jsonobject.get("longitude").toString()),
-                                        jsonobject.get("description").toString(),
-                                        jsonobject.get("title").toString(),
-                                        Double.parseDouble(jsonobject.get("rating").toString()),
-                                        jsonobject.get("location").toString(),
-                                        Integer.parseInt(jsonobject.get("major").toString()),
-                                        Integer.parseInt(jsonobject.get("minor").toString()));
-                                roomAddSightplace(sightplace);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                        }
+    private void doFakeProgress() {
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            int i = 0;
 
-                        launchMain = true;
-                        if (launchManually)
-                            startMainActivity();
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("LAB", error.toString());
-                    }
-                });
-        jsonArrayRequest.setTag(TAG);
-        // Add the request to the RequestQueue.
-        requestQueue.add(jsonArrayRequest);
+            @Override
+            public void run() {
+                //this repeats every 8 ms
+                if (i <= progressBar.getMax()) {
+                    i++;
+                } else {
+                    startMainActivity();
+                    //closing the timer
+                    cancel();
+                }
+            }
+        }, 0, DELAY_PROGRESS);
     }
 
-    private ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback() {
-        @Override
-        public void onAvailable(@NonNull Network network) {
-            super.onAvailable(network);
-            isNetworkConnected = true;
-            if (needContent) {
-                snackbar.dismiss();
-                downloadResurces();
-                doProgress();
-                needContent = false;
-            }
-        }
+    private void downloadResources() {
+        if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            Log.v(TAG, "Permission is granted");
+            // Instantiate the RequestQueue.
+            requestQueue = Volley.newRequestQueue(this);
+            String url = getString(R.string.content_url);
+            // Request a jsonArray response from the provided URL.
+            JsonArrayRequest jsonArrayRequest = new JsonArrayRequest
+                    (Request.Method.GET, url, null, response -> {
+                        new CreateSightplace().execute(response);
+                    }, error -> Log.d("LAB", error.toString()));
+            jsonArrayRequest.setTag(TAG);
 
-        @Override
-        public void onLost(@NonNull Network network) {
-            super.onLost(network);
-            Toast.makeText(getApplicationContext(), "*No conn*\n", Toast.LENGTH_LONG).show();
-
-            isNetworkConnected = false;
-            if (needContent) {
-                snackbar.show();
-            }
+            // Add the request to the RequestQueue.
+            requestQueue.add(jsonArrayRequest);
+        } else {
+            PermissionUtility.askForStoragePermissions(activity);
         }
-    };
+    }
 
     private void roomAddSightplace(Sightplace sightplace) {
         AddSightplaceViewModel model = new ViewModelProvider(this).get(AddSightplaceViewModel.class);
@@ -212,16 +168,30 @@ public class LauncherActivity extends AppCompatActivity {
         ConnectivityManager connectivityManager =
                 (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivityManager != null) {
-            //api 24, android 7
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                connectivityManager.registerDefaultNetworkCallback(networkCallback);
-            } else {
-                //Class deprecated since API 29 (android 10) but used for android 5 and 6
-                NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-                isNetworkConnected = networkInfo != null && networkInfo.isConnected();
-            }
+            //api > 25
+            connectivityManager.registerDefaultNetworkCallback(new ConnectivityManager.NetworkCallback() {
+                @Override
+                public void onAvailable(@NonNull Network network) {
+                    super.onAvailable(network);
+                    if (needContent) {
+                        snackbar.dismiss();
+                        downloadResources();
+                        needContent = false;
+                    }
+                }
+
+                @Override
+                public void onLost(@NonNull Network network) {
+                    super.onLost(network);
+                    if (needContent) {
+                        snackbar.show();
+                    }
+                }
+            });
         } else {
-            isNetworkConnected = false;
+            if (needContent) {
+                snackbar.show();
+            }
         }
     }
 
@@ -230,6 +200,75 @@ public class LauncherActivity extends AppCompatActivity {
                 getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         return (networkInfo != null && networkInfo.isConnected());
+    }
+
+    //check presenza elementi room
+    //if true -> fast skip
+    //if false -> if check connection
+    //      if true -> get http -> room populate -> progress update -> intent
+    //      if false -> snack bar (link settings)
+    private void roomObserver(List<Sightplace> sightplaces) {
+        if (!doNotUpdate) {
+            if (sightplaces.isEmpty()) {
+                doNotUpdate = true;
+                if (isOnline()) {
+                    downloadResources();
+                } else {
+                    snackbar.show();
+                    needContent = true;
+                }
+            } else {
+                doFakeProgress();
+            }
+        }
+    }
+
+    private class CreateSightplace extends AsyncTask<JSONArray, Integer, Integer> {
+
+        Exception e;
+
+        //create sightplaces downloads images, insert in DB
+        protected Integer doInBackground(JSONArray... jsonArrays) {
+            JSONArray response = jsonArrays[0];
+            Sightplace sightplace = null;
+            try {
+                for (int i = 0; i < response.length(); i++) {
+                    JSONObject jsonobject = response.getJSONObject(i);
+                    Bitmap bitmap = BitmapFactory.decodeStream(new URL(jsonobject.get("url").toString()).openConnection().getInputStream());
+
+                    sightplace = new Sightplace(
+                            Double.parseDouble(jsonobject.get("latitude").toString()),
+                            Double.parseDouble(jsonobject.get("longitude").toString()),
+                            jsonobject.get("description").toString(),
+                            jsonobject.get("title").toString(),
+                            Double.parseDouble(jsonobject.get("rating").toString()),
+                            jsonobject.get("location").toString(),
+                            Integer.parseInt(jsonobject.get("major").toString()),
+                            Integer.parseInt(jsonobject.get("minor").toString()),
+                            jsonobject.get("url").toString(),
+                            Utility.saveImage(activity,
+                                    jsonobject.get("major").toString(),
+                                    jsonobject.get("minor").toString(),
+                                    jsonobject.get("title").toString(),
+                                    bitmap));
+
+                    roomAddSightplace(sightplace);
+                }
+            } catch (Exception e) {
+                this.e = e;
+                publishProgress(0);
+            }
+            return 1;
+        }
+
+
+        protected void onProgressUpdate(Integer... progress) {
+            Log.d("LAUNCHER", e.getMessage());
+        }
+
+        protected void onPostExecute(Integer integers) {
+            startMainActivity();
+        }
     }
 
 }

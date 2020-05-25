@@ -1,9 +1,7 @@
 package com.example.exploresagradafamilia;
 
 import android.Manifest;
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -13,6 +11,8 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.util.Base64;
 import android.util.Log;
@@ -22,23 +22,21 @@ import android.widget.Toast;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-import com.example.exploresagradafamilia.Beacons.BeaconUtility;
 import com.google.android.material.snackbar.Snackbar;
+import com.squareup.picasso.Picasso;
 
-import java.io.InputStream;
-import java.util.Objects;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URL;
 
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
 public class Utility {
-
-    public static final int REQUEST_ENABLE_BLUETOOTH = 3;
-    public static final int REQUEST_ENABLE_POSITION = 2;
-    public static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
 
 
     public static void insertFragment(AppCompatActivity activity, Fragment fragment, String tag) {
@@ -100,78 +98,7 @@ public class Utility {
         toast.show();
     }
 
-    /**
-     * Check permesso localizzazione >= M
-     */
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public static void askForLocationPermissions(AppCompatActivity activity) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        builder.setTitle(R.string.location_access_needed);
-        builder.setMessage(R.string.grant_location_access);
-        builder.setPositiveButton(android.R.string.ok, null);
-        builder.setOnDismissListener(dialog -> {
-            activity.requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                    PERMISSION_REQUEST_COARSE_LOCATION);
-        });
-        builder.show();
-    }
 
-    /**
-     * Richiesta localizzazione con apertura impostazioni
-     */
-    public static void askToTurnOnLocation(AppCompatActivity activity) {
-        AlertDialog.Builder dialog = new AlertDialog.Builder(activity);
-        dialog.setMessage(R.string.location_disabled);
-        dialog.setPositiveButton(R.string.location_settings, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
-                // TODO Auto-generated method stub
-                Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                activity.startActivityForResult(myIntent, REQUEST_ENABLE_POSITION);
-            }
-        });
-        dialog.show();
-    }
-
-    /**
-     * Check localizzazione attiva
-     */
-    public static boolean isLocationEnabled(AppCompatActivity activity) {
-        LocationManager lm = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
-        boolean networkLocationEnabled = false;
-        boolean gpsLocationEnabled = false;
-        try {
-            networkLocationEnabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-            gpsLocationEnabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        } catch (Exception ex) {
-            Log.d("UTILITY", "Excepción al obtener información de localización");
-        }
-        return networkLocationEnabled || gpsLocationEnabled;
-    }
-
-    /**
-     * Richiesta bluetooth con apertura impostazioni
-     */
-    public static void askToTurnOnBluetooth(AppCompatActivity activity) {
-        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-        activity.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BLUETOOTH);
-    }
-
-    /**
-     * Check Bt attivo
-     */
-    public static boolean isBluetoothEnabled(AppCompatActivity activity) {
-        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mBluetoothAdapter == null) {
-            Utility.showToastMessage(activity, activity.getString(R.string.not_support_bluetooth_msg));
-            return true;
-        }
-        if (mBluetoothAdapter.isEnabled()) {
-            return true;
-        }
-
-        return false;
-    }
 
     public static boolean isArchived(AppCompatActivity activity, int id) {
         FragmentManager manager = activity.getSupportFragmentManager();
@@ -228,6 +155,46 @@ public class Utility {
             mapFragment.showTooltip(minor_id);
         } else {
             Log.d("UTILITY", "List Sightplaces not accessible");
+        }
+
+    }
+
+    /**
+     * Method called to save the image pf sightpalce in a dir of the application
+     *
+     * @return Uri of image saved
+     */
+    public static String saveImage(AppCompatActivity activity, String major, String minor, String title, Bitmap bitmap) throws IOException {
+        Log.d("IMAGE", bitmap.toString());
+        String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + File.separator + activity.getString(R.string.app_name);
+        File outputDir = new File(path);
+        outputDir.mkdirs();
+        String fileName = major + "-" + minor + "-" + title.replace(" ", "") + ".jpg";
+
+        OutputStream out = null;
+        File file = new File(path + File.separator + fileName);
+        try {
+            out = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+            out.flush();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.d("IMAGE", e.getMessage());
+        }
+        path = file.getPath();
+        Uri bmpUri = Uri.parse("file://" + path);
+        return bmpUri.getPath();
+    }
+
+    public static Bitmap getImageFromUri(AppCompatActivity activity, String imageUri) {
+        Log.d("IMAGE", imageUri);
+        try {
+            Bitmap bitmap = MediaStore.Images.Media.getBitmap(activity.getContentResolver(), Uri.parse("file://" + imageUri));
+            return bitmap;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
         }
 
     }

@@ -1,9 +1,7 @@
 package com.example.exploresagradafamilia.Beacons;
 
 import android.Manifest;
-import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
@@ -11,16 +9,14 @@ import android.os.Build;
 import android.os.RemoteException;
 import android.util.Log;
 
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.exploresagradafamilia.ListFragment;
+import com.example.exploresagradafamilia.Permissions.PermissionUtility;
 import com.example.exploresagradafamilia.R;
 import com.example.exploresagradafamilia.Utility;
 import com.example.exploresagradafamilia.ViewModel.ArchiveSightplaceViewModel;
-import com.example.exploresagradafamilia.ViewModel.ListSightplaceViewModel;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
@@ -33,15 +29,10 @@ import org.altbeacon.beacon.Region;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
-
-import okhttp3.internal.Util;
 
 public class BeaconUtility implements BeaconConsumer, RangeNotifier {
 
     public static final String TAG_BEACON = "TAG_BEACON";
-    private static final int REQUEST_ENABLE_BLUETOOTH = 1;
-    private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
     private static final long DEFAULT_SCAN_PERIOD_MS = 6000l;
     private static final String IBEACON_LAYOUT = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
     private static final String ALL_BEACONS_REGION = "AllBeaconsRegion";
@@ -72,7 +63,6 @@ public class BeaconUtility implements BeaconConsumer, RangeNotifier {
         try {
             // Ricerca beacon inclusi nell'oggetto regionale
             mBeaconManager.startRangingBeaconsInRegion(mRegion);
-            Utility.showToastMessage(activity, activity.getString(R.string.start_looking_for_beacons));
         } catch (RemoteException e) {
             Log.d(TAG_BEACON, "Eccezzione nell'attivare la ricerca di beacons " + e.getMessage());
         }
@@ -99,7 +89,7 @@ public class BeaconUtility implements BeaconConsumer, RangeNotifier {
      * <p>
      * id1 = UUID
      * id2 = Major
-     * id3 = Minor 1 2 3
+     * id3 = Minor
      * rssi = distance
      */
     @Override
@@ -132,7 +122,7 @@ public class BeaconUtility implements BeaconConsumer, RangeNotifier {
             // Richiesta permessi (se non già ottenuti)
             if (activity.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) !=
                     PackageManager.PERMISSION_GRANTED) {
-                Utility.askForLocationPermissions(activity);
+                PermissionUtility.askForLocationPermissions(activity);
             } else { // Permessi ottenuti
                 checkServices();
                 startDetectingBeacons();
@@ -145,11 +135,6 @@ public class BeaconUtility implements BeaconConsumer, RangeNotifier {
 
     public void stopService() {
         stopDetectingBeacons();
-        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        // Disattivazione del BT
-        if (mBluetoothAdapter.isEnabled()) {
-            mBluetoothAdapter.disable();
-        }
     }
 
     private void stopDetectingBeacons() {
@@ -174,10 +159,10 @@ public class BeaconUtility implements BeaconConsumer, RangeNotifier {
     }
 
     private void checkServices() {
-        if (!Utility.isLocationEnabled(activity)) {
-            Utility.askToTurnOnLocation(activity);
-        } else if (!Utility.isBluetoothEnabled(activity)) {
-            Utility.askToTurnOnBluetooth(activity);
+        if (!PermissionUtility.isLocationEnabled(activity)) {
+            PermissionUtility.askToTurnOnLocation(activity);
+        } else if (!PermissionUtility.isBluetoothEnabled(activity)) {
+            PermissionUtility.askToTurnOnBluetooth(activity);
         }
     }
 }

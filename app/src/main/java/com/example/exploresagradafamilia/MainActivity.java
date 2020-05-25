@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.StrictMode;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -12,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.exploresagradafamilia.Beacons.BeaconUtility;
+import com.example.exploresagradafamilia.Permissions.PermissionUtility;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,6 +31,9 @@ public class MainActivity extends AppCompatActivity {
             Utility.insertFragment(this, new MapFragment(), MapFragment.MAP_FRAGMENT_TAG);
         }
         beaconUtility = new BeaconUtility(this);
+
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
     }
 
     @Override
@@ -60,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
         switch (requestCode) {
-            case Utility.PERMISSION_REQUEST_COARSE_LOCATION: {
+            case PermissionUtility.PERMISSION_REQUEST_COARSE_LOCATION: {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     beaconUtility.startService();
                 } else {
@@ -82,19 +87,19 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         switch (requestCode) {
-            case Utility.REQUEST_ENABLE_BLUETOOTH: {
-                if (!Utility.isBluetoothEnabled(this)) {
-                    Utility.askToTurnOnBluetooth(this);
-                } else if (!Utility.isLocationEnabled(this)) {
-                    Utility.askToTurnOnLocation(this);
+            case PermissionUtility.REQUEST_ENABLE_BLUETOOTH: {
+                if (!PermissionUtility.isBluetoothEnabled(this)) {
+                    PermissionUtility.askToTurnOnBluetooth(this);
+                } else if (!PermissionUtility.isLocationEnabled(this)) {
+                    PermissionUtility.askToTurnOnLocation(this);
                 }
                 break;
             }
-            case Utility.REQUEST_ENABLE_POSITION: {
-                if (!Utility.isLocationEnabled(this)) {
-                    Utility.askToTurnOnLocation(this);
-                } else if (!Utility.isBluetoothEnabled(this)) {
-                    Utility.askToTurnOnBluetooth(this);
+            case PermissionUtility.REQUEST_ENABLE_POSITION: {
+                if (!PermissionUtility.isLocationEnabled(this)) {
+                    PermissionUtility.askToTurnOnLocation(this);
+                } else if (!PermissionUtility.isBluetoothEnabled(this)) {
+                    PermissionUtility.askToTurnOnBluetooth(this);
                 }
                 break;
             }

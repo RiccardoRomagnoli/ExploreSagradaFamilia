@@ -1,39 +1,40 @@
 package com.example.exploresagradafamilia.RecyclerView;
 
-import android.app.Activity;
-import android.media.Image;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.Environment;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.exploresagradafamilia.R;
 import com.example.exploresagradafamilia.Sightplace;
 import com.example.exploresagradafamilia.Utility;
 import com.flaviofaria.kenburnsview.KenBurnsView;
-import com.squareup.picasso.Picasso;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import okhttp3.internal.Util;
 
 public class SightplaceAdapter extends RecyclerView.Adapter<SightplaceAdapter.SigthplaceViewHolder> {
 
     private static final String LOG = "Sightplace Adapter";
     private List<Sightplace> sightplaceList = new ArrayList<>();
-    private Activity activity;
+    private AppCompatActivity activity;
 
-    public SightplaceAdapter(Activity activity) {
+    public SightplaceAdapter(AppCompatActivity activity) {
         this.activity = activity;
     }
 
@@ -51,7 +52,7 @@ public class SightplaceAdapter extends RecyclerView.Adapter<SightplaceAdapter.Si
 
     @Override
     public void onBindViewHolder(@NonNull SigthplaceViewHolder holder, int position) {
-        holder.setSightplaceData(sightplaceList.get(position));
+        holder.setSightplaceData(activity, sightplaceList.get(position));
     }
 
     @Override
@@ -93,6 +94,7 @@ public class SightplaceAdapter extends RecyclerView.Adapter<SightplaceAdapter.Si
         private TextView textLocation, textStarRating, textTitle, textDescription;
         private View disableCardView;
         private ImageView lock;
+        private ImageView share;
 
         SigthplaceViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -103,19 +105,18 @@ public class SightplaceAdapter extends RecyclerView.Adapter<SightplaceAdapter.Si
             textLocation = itemView.findViewById(R.id.textLocation);
             disableCardView = itemView.findViewById(R.id.viewDisableLayout);
             lock = itemView.findViewById(R.id.imageLock);
+            share = itemView.findViewById(R.id.imageShare);
         }
 
-        void setSightplaceData(Sightplace sightplace) {
-            //to add url
-            //Picasso.get().load("https://www.publicdomainpictures.net/pictures/300000/velka/empty-white-room.jpg").into(image);
-
-            image.setImageBitmap(Utility.getImageBitmap(sightplace.getImage()));
+        void setSightplaceData(AppCompatActivity activity, Sightplace sightplace) {
+            image.setImageBitmap(Utility.getImageFromUri(activity, sightplace.getImageUrl()));
             textTitle.setText(sightplace.getTitle());
             textLocation.setText(sightplace.getLocation());
             textStarRating.setText(String.valueOf(sightplace.getRating()));
             textDescription.setText(sightplace.getDescription());
             textDescription.setMovementMethod(new ScrollingMovementMethod());
 
+            //Manage the Blocked - Unblocked Sightplace
             if (!sightplace.getArchived()) {
                 disableCardView.setVisibility(View.VISIBLE);
                 lock.setVisibility(View.VISIBLE);
@@ -123,6 +124,47 @@ public class SightplaceAdapter extends RecyclerView.Adapter<SightplaceAdapter.Si
                 disableCardView.setVisibility(View.GONE);
                 lock.setVisibility(View.GONE);
             }
+
+            //Manage the sharebutton
+
+
+            share.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    Intent sendIntent = new Intent(Intent.ACTION_SEND);
+                    sendIntent.putExtra(Intent.EXTRA_TEXT,
+                            v.getContext().getString(R.string.location) + sightplace.getLocation() + "\n" +
+                                    v.getContext().getString(R.string.title) + sightplace.getTitle() + "\n" +
+                                    v.getContext().getString(R.string.description) + sightplace.getDescription()
+                    );
+                    sendIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + sightplace.getImageUrl()));
+                    sendIntent.setType("image/png");
+
+                    sendIntent.setType("text/plain");
+                    if (v.getContext() != null &&
+                            sendIntent.resolveActivity(v.getContext().getPackageManager()) != null) {
+                        v.getContext().startActivity(Intent.createChooser(sendIntent, "Share with"));
+                    }
+                }
+            });
+        }
+
+        private Uri pathToShare(Bitmap bitmapImage) {
+            String path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/" + "Share.png";
+            OutputStream out = null;
+            File file = new File(path);
+            try {
+                out = new FileOutputStream(file);
+                bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, out);
+                out.flush();
+                out.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            path = file.getPath();
+            Uri bmpUri = Uri.parse("file://" + path);
+            return bmpUri;
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.example.exploresagradafamilia;
 
+import android.net.Uri;
+
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -12,8 +14,6 @@ public class Sightplace {
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "sightplace_id")
     private int id;
-    @ColumnInfo(name = "sightplace_image")
-    private String image;
     @ColumnInfo(name = "sightplace_lat")
     private Double latitude;
     @ColumnInfo(name = "sightplace_lon")
@@ -32,14 +32,17 @@ public class Sightplace {
     private int major;
     @ColumnInfo(name = "sightplace_minor")
     private int minor;
+    @ColumnInfo(name = "sightplace_image_web_url")
+    private String imageWebUrl;
+    @ColumnInfo(name = "sightplace_image_url")
+    private String imageUrl;
 
     /**
-     * @param image    Base64 encoded image
      * @param major    Ibeacon major ID
      * @param minor    Ibeacon minor ID
+     * @param imageWebUrl
      */
-    public Sightplace(String image, Double latitude, Double longitude, String description, String title, Double rating, String location, int major, int minor) {
-        this.image = image;
+    public Sightplace(Double latitude, Double longitude, String description, String title, Double rating, String location, int major, int minor, String imageWebUrl, String imageUrl) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.description = description;
@@ -48,11 +51,9 @@ public class Sightplace {
         this.location = location;
         this.major = major;
         this.minor = minor;
+        this.imageWebUrl = imageWebUrl;
+        this.imageUrl = imageUrl;
         this.archived = false;
-    }
-
-    public String getImage() {
-        return image;
     }
 
     public boolean getArchived() {
@@ -89,6 +90,14 @@ public class Sightplace {
 
     public int getMinor() {
         return minor;
+    }
+
+    public String getImageWebUrl() {
+        return imageWebUrl;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
     }
 
     public int getId() {

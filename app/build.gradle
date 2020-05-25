@@ -81,4 +81,7 @@ dependencies {
     //beacons lib
     implementation 'org.altbeacon:android-beacon-library:2.12.3'
 
+    //progress bar
+    implementation 'me.zhanghai.android.materialprogressbar:library:1.6.1'
+
 }
