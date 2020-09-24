@@ -249,7 +249,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         if (opt.isPresent()) {
             return opt.get().getArchived() ? 1 : 0;
         } else {
-            Utility.showToastMessage(activity, "ID Ibeacon non riconosciuto");
+            Utility.showToastMessage(activity, "ID Ibeacon non riconosciuto -> Use UUID");
             return -1;
         }
     }

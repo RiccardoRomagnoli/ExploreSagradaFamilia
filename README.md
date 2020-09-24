@@ -1,2 +1,2 @@
 # ExploreSagradaFamilia
-Explore the turistic site by this interactive App
+Explore turistic sites by this interactive App
