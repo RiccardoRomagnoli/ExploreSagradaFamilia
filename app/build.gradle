@@ -1,0 +1,87 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion  29
+    buildToolsVersion "29.0.3"
+
+    defaultConfig {
+        applicationId "com.example.exploresagradafamilia"
+        minSdkVersion 25
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+    }
+
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    testImplementation 'junit:junit:4.13'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+
+    //material UI
+    implementation 'com.google.android.material:material:1.2.0-alpha02'
+
+    //viewmodel
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+
+    //room
+    implementation 'androidx.room:room-runtime:2.2.5'
+    annotationProcessor 'androidx.room:room-compiler:2.2.5'
+
+    //http
+    implementation 'com.android.volley:volley:1.1.1'
+
+    //maps
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+    implementation 'com.google.android.gms:play-services-location:17.0.0'
+
+    //maps mapbox
+    implementation 'com.mapbox.mapboxsdk:mapbox-android-sdk:9.2.0'
+
+    //Commons collections utilities
+    implementation 'org.apache.commons:commons-collections4:4.4'
+
+    //some more
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.71"
+    testImplementation 'junit:junit:4.13'
+    androidTestImplementation 'androidx.test:core:1.2.0'
+    androidTestImplementation 'androidx.test:runner:1.3.0-beta01'
+
+    // Ken effect
+    implementation "com.flaviofaria:kenburnsview:1.0.7"
+
+    // Image loading
+    implementation 'com.squareup.picasso:picasso:2.71828'
+
+    //beacons lib
+    implementation 'org.altbeacon:android-beacon-library:2.12.3'
+
+    //progress bar
+    implementation 'me.zhanghai.android.materialprogressbar:library:1.6.1'
+
+}

@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">ExploreSagradaFamilia</string>
+
+    <string name="no_intern_available">No internet available.</string>
+    <string name="settings">settings</string>
+    <string name="access_token">pk.eyJ1IjoicmljY2FyZG8tcm9tYWdub2xpIiwiYSI6ImNrOXNlanptNjEzN2UzbnFwYjg5MWpnMncifQ.3-TS0DYaPTrroaES-9hnLg</string>
+    <string name="extended_fab_label">Status</string>
+    <string name="page_title">Reach all the markers!</string>
+    <string name="not_archived">Reach the palce to get all the informations!</string>
+
+    <string name="writing_access_needed">This application needs external storage</string>
+    <string name="grant_writing_access">Please grant storage permissions so the app can manage sightplaces images</string>
+    <string name="location_access_needed">This application needs localization</string>
+    <string name="grant_location_access">Please grant location permissions so the app can detect sightplaces</string>
+    <string name="not_support_bluetooth_msg">This device does not support bluetooth, it is not possible to search for beacons</string>
+    <string name="cancel_button_text">Cancel</string>
+    <string name="location_disabled">Location in high precision mode not activated</string>
+    <string name="location_settings">Open location settings</string>
+    <string name="location_not_granted">Since the location permit has not been granted,</string>
+    <string name="cannot_discover_beacons">this application will not be able to search for beacons</string>
+    <string name="writing_not_granted">Since the storage permit has not been granted,</string>
+    <string name="cannot_mangage_images">this application will not be able to see images</string>
+    <string name="funcionality_limited">Limited functionality</string>
+    <string name="no_bluetooth_msg">With bluetooth deactivated it is not possible to search for beacons</string>
+    <string name="start_looking_for_beacons">Starting to look for beacons</string>
+    <string name="stop_looking_for_beacons">Stopping the search for beacons</string>
+    <string name="no_beacons_detected">No beacons found</string>
+    <string name="archived">"You are near: %1$s"</string>
+    <string name="location">Location: </string>
+    <string name="title">Title: </string>
+    <string name="description">Description: </string>
+    <string name="content_url">https://agriturismomarcheok.it/web-services/getSightplaces.php</string>
+</resources>
